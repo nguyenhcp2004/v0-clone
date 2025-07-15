@@ -17,7 +17,7 @@ export default function Home() {
   const [codeHistory, setCodeHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1); // -1: no code yet
 
-  // Whenever previewCode changes (và khác null), push vào history nếu là code mới
+  // Whenever previewCode changes (and is not null), push to history if it's new
   useEffect(() => {
     if (
       previewCode &&
@@ -28,14 +28,14 @@ export default function Home() {
       setCodeHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     }
-    // Tự động bật preview khi có code
+    // Auto open preview if there is code
     if (previewCode) {
       setShowPreview(true);
     }
   }, [previewCode]);
 
   // Undo/redo handlers
-  // (Đã khai báo phía trên, xóa duplicate này)
+  // (Already declared above, remove duplicate)
 
   // State for resizable chat width
   const [chatWidth, setChatWidth] = useState(500);
@@ -45,7 +45,7 @@ export default function Home() {
   useEffect(() => {
     if (!isResizing) return;
     const handleMouseMove = (e: MouseEvent) => {
-      // Giới hạn min/max width nếu muốn
+      // Limit min/max width if needed
       const min = 320,
         max = 900;
       let newWidth = e.clientX - document.body.getBoundingClientRect().left;
@@ -62,7 +62,7 @@ export default function Home() {
     };
   }, [isResizing]);
 
-  // Whenever previewCode changes (và khác null), push vào history nếu là code mới
+  // Whenever previewCode changes (and is not null), push to history if it's new
   useEffect(() => {
     if (
       previewCode &&
@@ -89,7 +89,7 @@ export default function Home() {
     }
   };
 
-  // (Đã gộp vào useEffect trên)
+  // (Already merged in the above useEffect)
 
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     api: "/api/chat",
@@ -116,7 +116,7 @@ export default function Home() {
     setShowPreview(true);
   };
 
-  // Tự động show preview khi AI gen xong và có code (chỉ khi code mới)
+  // Auto show preview when AI finishes generating and there is code (only for new code)
   const prevStatus = useRef<string>("");
   const prevPreviewCode = useRef<string | null>(null);
   useEffect(() => {
@@ -132,10 +132,10 @@ export default function Home() {
     prevPreviewCode.current = previewCode;
   }, [status, previewCode]);
 
-  // Tự động cập nhật previewCode khi có message AI mới chứa code UI
+  // Auto update previewCode when there is a new AI message containing UI code
   useEffect(() => {
     if (!messages || messages.length === 0) return;
-    // Tìm message AI mới nhất có code UI
+    // Find the newest AI message that has UI code
     for (let i = messages.length - 1; i >= 0; i--) {
       const msg = messages[i];
       if (msg.role === "assistant") {
@@ -280,7 +280,7 @@ export default function Home() {
                     setHistoryIndex(idx);
                     setPreviewCode(codeHistory[idx]);
                   }}
-                  title="Chọn version code"
+                  title="Choose version code"
                 >
                   {codeHistory.map((_, idx) => (
                     <option key={idx} value={idx}>
