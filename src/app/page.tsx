@@ -270,22 +270,25 @@ export default function Home() {
               Preview code
             </span>
             <div className="flex gap-2 items-center">
-              <button
-                className="px-2 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
-                onClick={handleUndo}
-                disabled={historyIndex <= 0}
-                title="Quay lại phiên bản trước"
-              >
-                ←
-              </button>
-              <button
-                className="px-2 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
-                onClick={handleRedo}
-                disabled={historyIndex === codeHistory.length - 1}
-                title="Tiến tới phiên bản sau"
-              >
-                →
-              </button>
+              {/* Select version */}
+              {codeHistory.length > 1 && (
+                <select
+                  className="bg-zinc-800 text-zinc-100 rounded px-2 py-1 border border-zinc-700 focus:outline-none focus:ring"
+                  value={historyIndex}
+                  onChange={(e) => {
+                    const idx = Number(e.target.value);
+                    setHistoryIndex(idx);
+                    setPreviewCode(codeHistory[idx]);
+                  }}
+                  title="Chọn version code"
+                >
+                  {codeHistory.map((_, idx) => (
+                    <option key={idx} value={idx}>
+                      Version {idx + 1}
+                    </option>
+                  ))}
+                </select>
+              )}
               <button
                 className="text-zinc-400 hover:text-white text-2xl font-bold px-2"
                 onClick={() => setShowPreview(false)}
