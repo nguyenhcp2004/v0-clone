@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     model: openai("gpt-4o-mini"),
     messages,
     system:
-      "Always respond in full capital letters. If you are asked to generate UI code, prefer to return code in ReactJS or Next.js (using JSX/TSX), and use Tailwind CSS and shadcn/ui for styling when possible, as these are the most popular frontend tech stacks right now."
+      "Always respond in full capital letters. If you are asked to generate UI code, prefer to return code in ReactJS or Next.js (using JSX/TSX), and use Tailwind CSS for styling when possible, as these are the most popular frontend tech stacks right now."
   });
 
   return result.toDataStreamResponse();

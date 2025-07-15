@@ -28,7 +28,8 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
       {
         dependencies: {
           react: "latest",
-          "react-dom": "latest"
+          "react-dom": "latest",
+          "framer-motion": "latest"
         },
         devDependencies: {
           tailwindcss: "latest",
@@ -55,7 +56,8 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
               dependencies: {
                 tailwindcss: "latest",
                 autoprefixer: "latest",
-                postcss: "latest"
+                postcss: "latest",
+                "framer-motion": "latest"
               }
             }
           : undefined

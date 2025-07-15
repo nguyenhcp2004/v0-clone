@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import { useChat, type Message } from "@ai-sdk/react";
 import dynamic from "next/dynamic";
@@ -11,6 +11,32 @@ const SandpackPreview = dynamic(
 );
 
 export default function Home() {
+  // State for preview & versioned code history
+  const [previewCode, setPreviewCode] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [codeHistory, setCodeHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1); // -1: no code yet
+
+  // Whenever previewCode changes (và khác null), push vào history nếu là code mới
+  useEffect(() => {
+    if (
+      previewCode &&
+      (codeHistory.length === 0 || previewCode !== codeHistory[historyIndex])
+    ) {
+      const newHistory = codeHistory.slice(0, historyIndex + 1);
+      newHistory.push(previewCode);
+      setCodeHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
+    // Tự động bật preview khi có code
+    if (previewCode) {
+      setShowPreview(true);
+    }
+  }, [previewCode]);
+
+  // Undo/redo handlers
+  // (Đã khai báo phía trên, xóa duplicate này)
+
   // State for resizable chat width
   const [chatWidth, setChatWidth] = useState(500);
   const [isResizing, setIsResizing] = useState(false);
@@ -35,18 +61,37 @@ export default function Home() {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
-  // State for preview
-  const [previewCode, setPreviewCode] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
 
-  // Tự động bật preview khi có code
+  // Whenever previewCode changes (và khác null), push vào history nếu là code mới
   useEffect(() => {
-    if (previewCode) {
-      setShowPreview(true);
+    if (
+      previewCode &&
+      (codeHistory.length === 0 || previewCode !== codeHistory[historyIndex])
+    ) {
+      const newHistory = codeHistory.slice(0, historyIndex + 1);
+      newHistory.push(previewCode);
+      setCodeHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
     }
   }, [previewCode]);
 
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
+  // Undo/redo handlers
+  const handleUndo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setPreviewCode(codeHistory[historyIndex - 1]);
+    }
+  };
+  const handleRedo = () => {
+    if (historyIndex < codeHistory.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+      setPreviewCode(codeHistory[historyIndex + 1]);
+    }
+  };
+
+  // (Đã gộp vào useEffect trên)
+
+  const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     api: "/api/chat",
     initialMessages: [
       {
@@ -70,6 +115,48 @@ export default function Home() {
     setPreviewCode(code);
     setShowPreview(true);
   };
+
+  // Tự động show preview khi AI gen xong và có code (chỉ khi code mới)
+  const prevStatus = useRef<string>("");
+  const prevPreviewCode = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      status === "ready" &&
+      previewCode &&
+      (prevStatus.current !== "ready" ||
+        prevPreviewCode.current !== previewCode)
+    ) {
+      setShowPreview(true);
+    }
+    prevStatus.current = status;
+    prevPreviewCode.current = previewCode;
+  }, [status, previewCode]);
+
+  // Tự động cập nhật previewCode khi có message AI mới chứa code UI
+  useEffect(() => {
+    if (!messages || messages.length === 0) return;
+    // Tìm message AI mới nhất có code UI
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msg = messages[i];
+      if (msg.role === "assistant") {
+        let code = null;
+        if (Array.isArray(msg.parts)) {
+          for (const part of msg.parts) {
+            if (part.type === "text") {
+              code = extractReactCode(part.text);
+              if (code) break;
+            }
+          }
+        } else if (msg.content) {
+          code = extractReactCode(msg.content);
+        }
+        if (code) {
+          setPreviewCode(code);
+          break;
+        }
+      }
+    }
+  }, [messages]);
 
   return (
     <div
@@ -182,13 +269,31 @@ export default function Home() {
             <span className="font-semibold text-lg text-white">
               Preview code
             </span>
-            <button
-              className="text-zinc-400 hover:text-white text-2xl font-bold px-2"
-              onClick={() => setShowPreview(false)}
-              aria-label="Close preview"
-            >
-              ×
-            </button>
+            <div className="flex gap-2 items-center">
+              <button
+                className="px-2 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+                onClick={handleUndo}
+                disabled={historyIndex <= 0}
+                title="Quay lại phiên bản trước"
+              >
+                ←
+              </button>
+              <button
+                className="px-2 py-1 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+                onClick={handleRedo}
+                disabled={historyIndex === codeHistory.length - 1}
+                title="Tiến tới phiên bản sau"
+              >
+                →
+              </button>
+              <button
+                className="text-zinc-400 hover:text-white text-2xl font-bold px-2"
+                onClick={() => setShowPreview(false)}
+                aria-label="Close preview"
+              >
+                ×
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 h-[70vh] w-full">
