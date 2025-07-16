@@ -7,7 +7,6 @@ import {
 import type { FC } from "react";
 import { useState, useEffect } from "react";
 import { dracula } from "@codesandbox/sandpack-themes";
-// import { useSandpackNavigation } from "@codesandbox/sandpack-react";
 
 interface SandpackPreviewContainerProps {
   code: string;
@@ -46,14 +45,26 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
   const files = template === "react" ? tailwindFiles : { "/App.js": code };
 
   const [activeTab, setActiveTab] = useState<"code" | "preview">("code");
+  const [providerKey, setProviderKey] = useState(0);
 
-  // Ensure /App.js is always the open file when code changes
-  // (Not supported in current Sandpack version, so skip)
+  // Reset provider khi code thay đổi
+  useEffect(() => {
+    setProviderKey((k) => k + 1);
+  }, [code]);
+
+  // Reset provider khi switch sang preview để force re-render
+  useEffect(() => {
+    if (activeTab === "preview") {
+      setProviderKey((k) => k + 1);
+    }
+  }, [activeTab]);
+
+  console.log("Active tab:", activeTab, code);
 
   return (
     <div
       style={{
-        height: "90vh",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         background: "#18181b",
@@ -104,38 +115,42 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
           Preview
         </button>
       </div>
+
       {/* Layout */}
       <SandpackProvider
-        key={code}
+        key={providerKey} // Luôn sử dụng providerKey để đảm bảo đồng bộ
         files={files}
         template="react"
         theme="light"
         options={{
           externalResources: ["https://cdn.tailwindcss.com"],
-          autoReload: true
+          autoReload: true,
+          autorun: true
         }}
       >
         <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-          <SandpackFileExplorer
-            style={{
-              height: "100%",
-              width: 220,
-              minWidth: 180,
-              background: "#18181b",
-              borderRight: "1px solid #27272a"
-            }}
-          />
+          {activeTab === "code" && (
+            <SandpackFileExplorer
+              style={{
+                height: "100%",
+                width: 220,
+                minWidth: 180,
+                background: "#18181b",
+                borderRight: "1px solid #27272a"
+              }}
+            />
+          )}
           <div style={{ flex: 1, height: "100%" }}>
             {activeTab === "code" ? (
               <SandpackCodeEditor
                 closableTabs
                 showTabs
                 wrapContent
-                style={{ height: "90vh", background: "#18181b" }}
+                style={{ height: "85vh", background: "#18181b" }}
               />
             ) : (
               <SandpackPreview
-                style={{ height: "90vh", background: "#18181b" }}
+                style={{ height: "85vh", background: "#18181b" }}
               />
             )}
           </div>

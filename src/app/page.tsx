@@ -299,7 +299,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex-1 h-[70vh] w-full">
+          <div className="flex-1 h-full w-full">
             <SandpackPreviewContainer code={previewCode} template="react" />
           </div>
         </div>
