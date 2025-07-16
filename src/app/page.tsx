@@ -5,6 +5,7 @@ import type { FormEvent } from "react";
 import { useChat, type Message } from "@ai-sdk/react";
 import dynamic from "next/dynamic";
 import SandpackPreviewContainer from "@/features/shared/components/SandpackPreview";
+import SandpackPreviewPanel from "@/features/shared/components/SandpackPreviewPanel";
 const SandpackPreview = dynamic(
   () => import("@/features/shared/components/SandpackPreview"),
   { ssr: false }
@@ -263,46 +264,14 @@ export default function Home() {
 
       {/* Preview section (right side, inline layout) */}
       {showPreview && previewCode && (
-        <div className="flex flex-col flex-1 h-fit bg-zinc-900 rounded-xl shadow-2xl border border-zinc-800 m-2">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900">
-            <span className="font-semibold text-lg text-white">
-              Preview code
-            </span>
-            <div className="flex gap-2 items-center">
-              {/* Select version */}
-              {codeHistory.length > 1 && (
-                <select
-                  className="bg-zinc-800 text-zinc-100 rounded px-2 py-1 border border-zinc-700 focus:outline-none focus:ring"
-                  value={historyIndex}
-                  onChange={(e) => {
-                    const idx = Number(e.target.value);
-                    setHistoryIndex(idx);
-                    setPreviewCode(codeHistory[idx]);
-                  }}
-                  title="Choose version code"
-                >
-                  {codeHistory.map((_, idx) => (
-                    <option key={idx} value={idx}>
-                      Version {idx + 1}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <button
-                className="text-zinc-400 hover:text-white text-2xl font-bold px-2"
-                onClick={() => setShowPreview(false)}
-                aria-label="Close preview"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-
-          <div className="flex-1 h-full w-full">
-            <SandpackPreviewContainer code={previewCode} template="react" />
-          </div>
-        </div>
+        <SandpackPreviewPanel
+          codeHistory={codeHistory}
+          historyIndex={historyIndex}
+          setHistoryIndex={setHistoryIndex}
+          setPreviewCode={setPreviewCode}
+          setShowPreview={setShowPreview}
+          previewCode={previewCode}
+        />
       )}
     </div>
   );
