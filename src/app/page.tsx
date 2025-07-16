@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Textarea } from "@/features/shared/components/ui/textarea";
+import { Button } from "@/features/shared/components/ui/button";
 import type { FormEvent } from "react";
 import { useChat, type Message } from "@ai-sdk/react";
 import dynamic from "next/dynamic";
@@ -93,14 +95,14 @@ export default function Home() {
   // (Already merged in the above useEffect)
 
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
-    api: "/api/chat",
-    initialMessages: [
-      {
-        id: "1",
-        role: "user",
-        content: "Hello, how are you?"
-      }
-    ]
+    api: "/api/chat"
+    // initialMessages: [
+    //   {
+    //     id: "1",
+    //     role: "user",
+    //     content: "Hello, how are you?"
+    //   }
+    // ]
   });
 
   // Detect if AI message contains React code block
@@ -159,6 +161,11 @@ export default function Home() {
     }
   }, [messages]);
 
+  // Check if user has sent any message
+  const hasUserMessage = messages.some(
+    (msg: Message) => msg.role === "user" && msg.content?.trim()
+  );
+
   return (
     <div
       className={`flex w-full max-w-[1800px] h-screen mx-auto bg-zinc-950 ${
@@ -170,7 +177,7 @@ export default function Home() {
     >
       {/* Chat section */}
       <div
-        className={`flex flex-col h-screen px-8 py-8 relative z-10 bg-transparent ${
+        className={`flex flex-col h-screen px-0 py-0 relative z-10 bg-zinc-950 ${
           showPreview && previewCode
             ? ""
             : "w-full max-w-[800px] min-w-[360px] justify-center items-center"
@@ -186,42 +193,107 @@ export default function Home() {
             : undefined
         }
       >
-        <div className="flex-1 min-h-0 overflow-y-auto pr-2">
-          {messages.map((message: Message) => (
-            <div
-              key={message.id}
-              className="whitespace-pre-wrap mb-4 flex items-start"
+        {!hasUserMessage ? (
+          <div className="flex flex-1 flex-col items-center justify-center w-full h-full">
+            <div className="mb-8 text-center">
+              <h1 className="text-5xl font-extrabold text-white mb-4 drop-shadow-lg">
+                What can I help you build?
+              </h1>
+              <p className="text-lg text-zinc-400 mb-6">
+                Ask me to generate code, UI, or answer anything about React,
+                Next.js, Tailwind, ...
+              </p>
+            </div>
+            <form
+              onSubmit={handleSubmit}
+              className="w-full flex justify-center"
             >
-              <div
-                className="font-semibold min-w-[48px] text-right pr-2 select-none"
-                style={{
-                  color: message.role === "user" ? "#a5b4fc" : "#f472b6"
-                }}
-              >
-                {message.role === "user" ? "User:" : "AI:"}
+              <div className="relative w-full max-w-2xl flex items-end bg-zinc-900 border border-zinc-700 rounded-2xl shadow-lg px-4 py-3">
+                <Textarea
+                  className="flex-1 resize-none bg-transparent text-base text-zinc-100 placeholder-zinc-400 focus:outline-none border-none shadow-none rounded-2xl min-h-[44px] max-h-60 leading-relaxed pr-12"
+                  style={{ resize: "none", boxShadow: "none" }}
+                  value={input}
+                  placeholder="Enter your message..."
+                  onChange={handleInputChange}
+                  autoFocus
+                  autoComplete="off"
+                  rows={1}
+                  maxLength={2000}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="absolute right-5 bottom-4 bg-zinc-800 hover:bg-zinc-700 rounded-full p-2 flex items-center justify-center shadow-none transition-colors"
+                  tabIndex={-1}
+                  aria-label="Send"
+                  style={{ height: 36, width: 36, minWidth: 36, minHeight: 36 }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </Button>
               </div>
-              <div className="flex-1 relative">
-                {Array.isArray(message.parts) &&
+            </form>
+          </div>
+        ) : (
+          <>
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 px-0 py-8 w-full items-center">
+              {messages.map(
+                (message: Message) =>
+                  Array.isArray(message.parts) &&
                   message.parts.map((part: any, i: number) => {
                     switch (part.type) {
                       case "text": {
                         const code = extractReactCode(part.text);
+                        const isUser = message.role === "user";
                         return (
                           <div
                             key={`${message.id}-${i}`}
-                            className="flex items-center group"
+                            className={`w-full flex ${
+                              isUser ? "justify-end" : "justify-start"
+                            }`}
                           >
-                            <div className="whitespace-pre-wrap break-words flex-1">
+                            {!isUser && (
+                              <div className="flex items-end mr-2"></div>
+                            )}
+                            <div
+                              className={`max-w-[70%] px-5 py-3 rounded-2xl shadow-md text-base whitespace-pre-wrap break-words ${
+                                isUser
+                                  ? "bg-zinc-700 text-zinc-100 rounded-br-md"
+                                  : " text-zinc-100 "
+                              }`}
+                            >
                               {part.text}
+                              {code && (
+                                <button
+                                  className="block mt-3 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded shadow-lg text-xs font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all border border-blue-700"
+                                  style={{ minWidth: 90 }}
+                                  onClick={() => handlePreview(code)}
+                                >
+                                  Preview code
+                                </button>
+                              )}
                             </div>
-                            {code && (
-                              <button
-                                className="ml-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-all shadow group-hover:scale-105"
-                                style={{ minWidth: 90 }}
-                                onClick={() => handlePreview(code)}
-                              >
-                                Preview code
-                              </button>
+                            {isUser && (
+                              <div className="flex items-end ml-2">
+                                <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-300 to-green-500 flex items-center justify-center text-white font-bold text-lg select-none shadow-md"></div>
+                              </div>
                             )}
                           </div>
                         );
@@ -229,19 +301,56 @@ export default function Home() {
                       default:
                         return null;
                     }
-                  })}
-              </div>
+                  })
+              )}
             </div>
-          ))}
-        </div>
-        <form onSubmit={handleSubmit} className="pt-2 w-full">
-          <input
-            className="dark:bg-zinc-900 w-full p-2 border border-zinc-300 dark:border-zinc-800 rounded shadow-xl"
-            value={input}
-            placeholder="Say something..."
-            onChange={handleInputChange}
-          />
-        </form>
+            <form
+              onSubmit={handleSubmit}
+              className="pb-8 pt-2 w-full flex justify-center"
+            >
+              <div className="relative w-full max-w-2xl flex items-end bg-zinc-900 border border-zinc-700 rounded-2xl shadow-lg px-4 py-3">
+                <Textarea
+                  className="flex-1 resize-none bg-transparent text-base text-zinc-100 placeholder-zinc-400 focus:outline-none border-none shadow-none rounded-2xl min-h-[44px] max-h-60 leading-relaxed pr-12"
+                  style={{ resize: "none", boxShadow: "none" }}
+                  value={input}
+                  placeholder="Enter your message..."
+                  onChange={handleInputChange}
+                  autoComplete="off"
+                  rows={1}
+                  maxLength={2000}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="absolute right-6 bottom-4 bg-zinc-800 hover:bg-zinc-700 rounded-full p-2 flex items-center justify-center shadow-none transition-colors"
+                  tabIndex={-1}
+                  aria-label="Send"
+                  style={{ height: 36, width: 36, minWidth: 36, minHeight: 36 }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </Button>
+              </div>
+            </form>
+          </>
+        )}
       </div>
 
       {/* Resizer */}
