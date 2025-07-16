@@ -1,3 +1,20 @@
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #18181b;
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #18181b;
+}
 @import "tailwindcss";
 @import "tw-animate-css";
 

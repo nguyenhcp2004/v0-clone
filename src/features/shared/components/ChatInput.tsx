@@ -5,14 +5,12 @@ interface ChatInputProps {
   input: string;
   handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
-  right?: number;
 }
 
 export default function ChatInput({
   input,
   handleInputChange,
-  handleSubmit,
-  right = 5
+  handleSubmit
 }: ChatInputProps) {
   return (
     <form onSubmit={handleSubmit} className="w-full flex justify-center">
@@ -37,7 +35,7 @@ export default function ChatInput({
         <Button
           type="submit"
           size="icon"
-          className={`absolute right-${right} bottom-4 bg-zinc-800 hover:bg-zinc-700 rounded-full p-2 flex items-center justify-center shadow-none transition-colors`}
+          className={`absolute right-5 bottom-4 bg-zinc-800 hover:bg-zinc-700 rounded-full p-2 flex items-center justify-center shadow-none transition-colors`}
           tabIndex={-1}
           aria-label="Send"
           style={{ height: 36, width: 36, minWidth: 36, minHeight: 36 }}

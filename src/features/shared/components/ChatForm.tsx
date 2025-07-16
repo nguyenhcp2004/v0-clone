@@ -16,7 +16,6 @@ export default function ChatForm({
       input={input}
       handleInputChange={handleInputChange}
       handleSubmit={handleSubmit}
-      right={6}
     />
   );
 }
