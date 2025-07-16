@@ -8,7 +8,8 @@ import {
   Position,
   Background,
   Controls,
-  ReactFlowProvider
+  ReactFlowProvider,
+  MiniMap
 } from "@xyflow/react";
 import type {
   Node,
@@ -47,7 +48,13 @@ const initialNodes: Node[] = [
 const initialEdges: Edge[] = [];
 
 const BaseNodeFullDemo = memo(
-  ({ data, id }: { data?: { label?: string }; id?: string }) => {
+  ({
+    data,
+    id
+  }: {
+    data?: { label?: string; showTopSource?: boolean };
+    id?: string;
+  }) => {
     return (
       <BaseNode className="w-96 relative">
         {/* Handles: absolutely positioned, always visible, high z-index */}
@@ -75,6 +82,21 @@ const BaseNodeFullDemo = memo(
             transform: "translateY(-50%)"
           }}
         />
+        {/* Handle mới ở top nếu có showTopSource */}
+        {data?.showTopSource && (
+          <BaseHandle
+            type="source"
+            position={Position.Top}
+            id={id ? `${id}-top-source` : undefined}
+            style={{
+              position: "absolute",
+              top: -6,
+              left: "50%",
+              zIndex: 20,
+              transform: "translateX(-50%)"
+            }}
+          />
+        )}
         <BaseNodeHeader className="border-b">
           <Rocket className="size-4" />
           <BaseNodeHeaderTitle>{data?.label ?? "Header"}</BaseNodeHeaderTitle>
@@ -101,6 +123,7 @@ BaseNodeFullDemo.displayName = "BaseNodeFullDemo";
 export default function Page() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -121,8 +144,60 @@ export default function Page() {
     baseFullDemo: (props) => <BaseNodeFullDemo {...props} />
   };
 
+  // Thêm node mới vào flow
+  const addNewNode = () => {
+    setNodes((nds) => [
+      ...nds,
+      {
+        id: `n${nds.length + 1}`,
+        position: { x: 300 + nds.length * 200, y: 200 },
+        data: { label: `Node ${nds.length + 1}` },
+        type: "baseFullDemo"
+      }
+    ]);
+  };
+
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
+      {/* Sidebar bên trái */}
+      <aside
+        style={{
+          position: "fixed",
+          left: 0,
+          top: 0,
+          width: 80,
+          height: "100vh",
+          background: "#23272f",
+          color: "#fff",
+          boxShadow: "2px 0 8px #0002",
+          zIndex: 1000,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: 24
+        }}
+      >
+        <button
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 12,
+            background: "#3b82f6",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 24,
+            border: "none",
+            marginBottom: 16,
+            cursor: "pointer"
+          }}
+          title="Thêm node mới"
+          onClick={addNewNode}
+        >
+          +
+        </button>
+        <span style={{ fontSize: 12, textAlign: "center" }}>Add Node</span>
+      </aside>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -131,6 +206,10 @@ export default function Page() {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
+        onEdgeClick={(_event, edge) => {
+          setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+        }}
+        onNodeClick={(_event, node) => setSelectedNode(node)}
       >
         <Background />
         <Controls
@@ -139,7 +218,44 @@ export default function Page() {
           }}
           position="top-right"
         />
+        <MiniMap />
       </ReactFlow>
+      {selectedNode && (
+        <aside
+          style={{
+            position: "fixed",
+            right: 0,
+            top: 0,
+            width: 320,
+            height: "100vh",
+            background: "#18181b",
+            color: "#fff",
+            boxShadow: "-2px 0 8px #0002",
+            zIndex: 1000,
+            padding: 24
+          }}
+        >
+          <h2 className="font-bold text-lg mb-2">Node info</h2>
+          <div className="mb-2">
+            ID: <span className="font-mono">{selectedNode.id}</span>
+          </div>
+          <div className="mb-2">
+            Label:{" "}
+            <span className="font-mono">
+              {String((selectedNode.data as any)?.label ?? "")}
+            </span>
+          </div>
+          <div className="mb-2">
+            Type: <span className="font-mono">{selectedNode.type}</span>
+          </div>
+          <button
+            className="mt-4 px-4 py-2 bg-zinc-700 rounded hover:bg-zinc-600"
+            onClick={() => setSelectedNode(null)}
+          >
+            Đóng
+          </button>
+        </aside>
+      )}
     </div>
   );
 }
