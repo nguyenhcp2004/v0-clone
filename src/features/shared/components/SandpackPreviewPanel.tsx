@@ -1,3 +1,4 @@
+"use client";
 // import React from "react";
 // import SandpackPreviewContainer from "@/features/shared/components/SandpackPreview";
 

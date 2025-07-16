@@ -114,6 +114,30 @@ export default function Home() {
     return match ? match[1] : null;
   };
 
+  // Find the latest assistant message index with a code block
+  let latestCodeMsgIdx = -1;
+  let latestCodePartIdx = -1;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
+    if (msg.role === "assistant" && Array.isArray(msg.parts)) {
+      for (let j = 0; j < msg.parts.length; j++) {
+        const part = msg.parts[j];
+        if (part.type === "text" && extractReactCode(part.text)) {
+          latestCodeMsgIdx = i;
+          latestCodePartIdx = j;
+          break;
+        }
+      }
+      if (latestCodeMsgIdx !== -1) break;
+    } else if (msg.role === "assistant" && msg.content) {
+      if (extractReactCode(msg.content)) {
+        latestCodeMsgIdx = i;
+        latestCodePartIdx = 0;
+        break;
+      }
+    }
+  }
+
   const handlePreview = (code: string) => {
     setPreviewCode(code);
     setShowPreview(true);
@@ -255,16 +279,21 @@ export default function Home() {
           <>
             <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 px-0 py-8 w-full items-center">
               {messages.map(
-                (message: Message) =>
+                (message: Message, msgIdx: number) =>
                   Array.isArray(message.parts) &&
-                  message.parts.map((part: any, i: number) => {
+                  message.parts.map((part: any, partIdx: number) => {
                     switch (part.type) {
                       case "text": {
                         const code = extractReactCode(part.text);
                         const isUser = message.role === "user";
+                        const showPreviewBtn =
+                          code &&
+                          message.role === "assistant" &&
+                          msgIdx === latestCodeMsgIdx &&
+                          partIdx === latestCodePartIdx;
                         return (
                           <div
-                            key={`${message.id}-${i}`}
+                            key={`${message.id}-${partIdx}`}
                             className={`w-full flex ${
                               isUser ? "justify-end" : "justify-start"
                             }`}
@@ -280,7 +309,7 @@ export default function Home() {
                               }`}
                             >
                               {part.text}
-                              {code && (
+                              {showPreviewBtn && (
                                 <button
                                   className="block mt-3 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded shadow-lg text-xs font-semibold hover:from-blue-700 hover:to-indigo-600 transition-all border border-blue-700"
                                   style={{ minWidth: 90 }}
