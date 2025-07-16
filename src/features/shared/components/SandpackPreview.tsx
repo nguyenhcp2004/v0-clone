@@ -57,35 +57,46 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
     historyIndex ?? 0
   );
   const [currentCode, setCurrentCode] = useState(code);
+  const prevCodeRef = useState<string>(code)[0];
+  const [isLoading, setIsLoading] = useState(false);
 
   // Sync code/historyIndex from props
   useEffect(() => {
     setCurrentCode(code);
     if (typeof historyIndex === "number") setCurrentHistoryIndex(historyIndex);
-  }, [code, historyIndex]);
+    // Loading effect when code changes
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    // Only navigate to code mode if new code is received from chat (not version switch)
+    const isNewCodeFromChat =
+      codeHistory &&
+      codeHistory.length > 0 &&
+      code === codeHistory[codeHistory.length - 1];
+    if (isNewCodeFromChat) {
+      setActiveTab("code");
+    }
+    if (!codeHistory) {
+      setActiveTab("code");
+    }
+    return () => clearTimeout(timer);
+  }, [code, historyIndex, codeHistory]);
 
-  // Reset provider khi code thay đổi
+  // Reset provider khi code hoặc tab thay đổi
   useEffect(() => {
     setProviderKey((k) => k + 1);
-  }, [currentCode]);
-
-  // Reset provider khi switch sang preview để force re-render
-  useEffect(() => {
-    if (activeTab === "preview") {
-      setProviderKey((k) => k + 1);
-    }
-  }, [activeTab]);
+  }, [currentCode, activeTab]);
 
   // Change version handler
   const handleChangeVersion = (idx: number) => {
     if (codeHistory && codeHistory[idx]) {
       setCurrentHistoryIndex(idx);
       setCurrentCode(codeHistory[idx]);
+      // Do NOT change activeTab here; let user stay in preview or code mode
     }
   };
 
   return (
-    <div className="h-full flex flex-col bg-zinc-900 rounded-lg">
+    <div className="h-full flex flex-col bg-zinc-900 rounded-lg relative">
       {/* Tabs with smooth transitions */}
       <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2 h-12">
         <div className="flex items-center">
@@ -138,6 +149,11 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
       {/* Layout with fade transition */}
       {showPreview && (
         <div className="flex-1 relative overflow-hidden">
+          {isLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-900 bg-opacity-70 transition-all">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-white"></div>
+            </div>
+          )}
           <SandpackProvider
             key={providerKey}
             files={
