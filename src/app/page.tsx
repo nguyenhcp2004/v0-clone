@@ -244,7 +244,7 @@ export default function Home() {
           {/* Scroll to bottom button - always centered and above chat input, visible in both chat and preview mode */}
           {showScrollBtn && (
             <button
-              className="absolute left-1/2 -translate-x-1/2 bottom-20 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition z-50 flex items-center justify-center w-12 h-12"
+              className="absolute left-1/2 -translate-x-1/2 bottom-20 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition-opacity duration-200 z-50 flex items-center justify-center w-12 h-12 opacity-100 pointer-events-auto cursor-pointer"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.18)" }}
               onClick={() => {
                 messagesEndRef.current?.scrollIntoView({
