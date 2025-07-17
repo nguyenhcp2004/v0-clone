@@ -174,9 +174,10 @@ export default function Home() {
     const container = document.getElementById("chat-scroll-container");
     if (!container) return;
     const handleScroll = () => {
+      // Show button if user scrolls up more than 1px from bottom
       const atBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight <
-        40;
+        1;
       setShowScrollBtn(!atBottom);
     };
     container.addEventListener("scroll", handleScroll);
@@ -215,61 +216,63 @@ export default function Home() {
             : undefined
         }
       >
-        <div
-          className="flex-1 overflow-y-auto relative"
-          id="chat-scroll-container"
-        >
-          {!hasUserMessage ? (
-            <ChatWelcome
-              handleSubmit={handleSubmit}
-              input={input}
-              handleInputChange={handleInputChange}
-            />
-          ) : (
-            <>
-              <ChatMessages
-                messages={messages}
-                extractReactCode={extractReactCode}
-                latestCodeMsgIdx={latestCodeMsgIdx}
-                latestCodePartIdx={latestCodePartIdx}
-                handlePreview={handlePreview}
+        <div className="flex flex-col flex-1 min-h-0 relative">
+          <div
+            className="flex-1 overflow-y-auto relative"
+            id="chat-scroll-container"
+          >
+            {!hasUserMessage ? (
+              <ChatWelcome
+                handleSubmit={handleSubmit}
+                input={input}
+                handleInputChange={handleInputChange}
               />
-              {/* Scroll anchor */}
-              <div ref={messagesEndRef} className="relative" />
-              {/* Scroll to bottom button - always centered and above chat input */}
-              {showScrollBtn && (
-                <button
-                  className="fixed left-1/2 -translate-x-1/2 bottom-24 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition z-50 flex items-center justify-center w-12 h-12"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.18)" }}
-                  onClick={() => {
-                    messagesEndRef.current?.scrollIntoView({
-                      behavior: "smooth"
-                    });
-                  }}
-                  aria-label="Scroll to bottom"
-                >
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </button>
-              )}
-            </>
+            ) : (
+              <>
+                <ChatMessages
+                  messages={messages}
+                  extractReactCode={extractReactCode}
+                  latestCodeMsgIdx={latestCodeMsgIdx}
+                  latestCodePartIdx={latestCodePartIdx}
+                  handlePreview={handlePreview}
+                />
+                {/* Scroll anchor */}
+                <div ref={messagesEndRef} className="relative" />
+              </>
+            )}
+          </div>
+          {/* Scroll to bottom button - always centered and above chat input, visible in both chat and preview mode */}
+          {showScrollBtn && (
+            <button
+              className="absolute left-1/2 -translate-x-1/2 bottom-20 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition z-50 flex items-center justify-center w-12 h-12"
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.18)" }}
+              onClick={() => {
+                messagesEndRef.current?.scrollIntoView({
+                  behavior: "smooth"
+                });
+              }}
+              aria-label="Scroll to bottom"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
           )}
+          <ChatForm
+            input={input}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+          />
         </div>
-        <ChatForm
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-        />
       </div>
 
       {/* Resizer */}
