@@ -73,20 +73,6 @@ export default function Home() {
     if (previewCode) setShowPreview(true);
   }, [previewCode]);
 
-  // Undo/redo
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(historyIndex - 1);
-      setPreviewCode(codeHistory[historyIndex - 1]);
-    }
-  };
-  const handleRedo = () => {
-    if (historyIndex < codeHistory.length - 1) {
-      setHistoryIndex(historyIndex + 1);
-      setPreviewCode(codeHistory[historyIndex + 1]);
-    }
-  };
-
   // Resizing effect
   useEffect(() => {
     if (!isResizing) return;
@@ -241,7 +227,6 @@ export default function Home() {
               </>
             )}
           </div>
-          {/* Scroll to bottom button - always centered and above chat input, visible in both chat and preview mode */}
           {showScrollBtn && (
             <button
               className="absolute left-1/2 -translate-x-1/2 bottom-20 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition-opacity duration-200 z-50 flex items-center justify-center w-12 h-12 opacity-100 pointer-events-auto cursor-pointer"
