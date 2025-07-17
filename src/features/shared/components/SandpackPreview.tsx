@@ -147,11 +147,14 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
                 : { "/App.js": currentCode }
             }
             template="react"
-            theme="light"
+            theme="dark"
             options={{
               externalResources: ["https://cdn.tailwindcss.com"],
               autoReload: true,
               autorun: true
+            }}
+            style={{
+              height: "100%"
             }}
           >
             <div
@@ -207,7 +210,7 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
                       closableTabs
                       showTabs
                       wrapContent
-                      style={{ height: "85vh", background: "#18181b" }}
+                      style={{ height: "100%" }}
                     />
                   </div>
                 ) : (
@@ -220,9 +223,7 @@ const SandpackPreviewContainer: FC<SandpackPreviewContainerProps> = ({
                       transition: "opacity 0.2s ease, transform 0.2s ease"
                     }}
                   >
-                    <SandpackPreview
-                      style={{ height: "85vh", background: "#18181b" }}
-                    />
+                    <SandpackPreview style={{ height: "100%" }} />
                   </div>
                 )}
               </div>

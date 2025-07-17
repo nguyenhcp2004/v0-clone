@@ -169,7 +169,7 @@ export default function Home() {
     >
       {/* Chat section */}
       <div
-        className={`flex flex-col h-screen px-0 py-0 relative z-10 bg-zinc-950 ${
+        className={`flex flex-col h-screen px-2 py-2 relative z-10 bg-zinc-950 ${
           showPreview && previewCode
             ? ""
             : "w-full max-w-[800px] min-w-[360px] justify-center items-center"
@@ -213,7 +213,7 @@ export default function Home() {
       {showPreview && previewCode && (
         <div
           style={{
-            width: 8,
+            width: 6,
             cursor: isResizing ? "col-resize" : "ew-resize",
             zIndex: 20,
             background: isResizing ? "#334155" : "#27272a",
