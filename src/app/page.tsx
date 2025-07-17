@@ -14,6 +14,8 @@ const SandpackPreview = dynamic(
 );
 
 export default function Home() {
+  // Ref for auto-scroll to bottom
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   // State
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -157,6 +159,34 @@ export default function Home() {
     setShowPreview(true);
   };
 
+  // Auto scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  // State for showing scroll-to-bottom button
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+
+  // Show scroll-to-bottom button if not at bottom
+  useEffect(() => {
+    const container = document.getElementById("chat-scroll-container");
+    if (!container) return;
+    const handleScroll = () => {
+      const atBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        40;
+      setShowScrollBtn(!atBottom);
+    };
+    container.addEventListener("scroll", handleScroll);
+    // Initial check
+    handleScroll();
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasUserMessage]);
+
   // Render
   return (
     <div
@@ -185,28 +215,61 @@ export default function Home() {
             : undefined
         }
       >
-        {!hasUserMessage ? (
-          <ChatWelcome
-            handleSubmit={handleSubmit}
-            input={input}
-            handleInputChange={handleInputChange}
-          />
-        ) : (
-          <>
-            <ChatMessages
-              messages={messages}
-              extractReactCode={extractReactCode}
-              latestCodeMsgIdx={latestCodeMsgIdx}
-              latestCodePartIdx={latestCodePartIdx}
-              handlePreview={handlePreview}
-            />
-            <ChatForm
+        <div
+          className="flex-1 overflow-y-auto relative"
+          id="chat-scroll-container"
+        >
+          {!hasUserMessage ? (
+            <ChatWelcome
+              handleSubmit={handleSubmit}
               input={input}
               handleInputChange={handleInputChange}
-              handleSubmit={handleSubmit}
             />
-          </>
-        )}
+          ) : (
+            <>
+              <ChatMessages
+                messages={messages}
+                extractReactCode={extractReactCode}
+                latestCodeMsgIdx={latestCodeMsgIdx}
+                latestCodePartIdx={latestCodePartIdx}
+                handlePreview={handlePreview}
+              />
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} className="relative" />
+              {/* Scroll to bottom button - always centered and above chat input */}
+              {showScrollBtn && (
+                <button
+                  className="fixed left-1/2 -translate-x-1/2 bottom-24 bg-zinc-800 text-white rounded-full shadow hover:bg-zinc-700 transition z-50 flex items-center justify-center w-12 h-12"
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.18)" }}
+                  onClick={() => {
+                    messagesEndRef.current?.scrollIntoView({
+                      behavior: "smooth"
+                    });
+                  }}
+                  aria-label="Scroll to bottom"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+              )}
+            </>
+          )}
+        </div>
+        <ChatForm
+          input={input}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+        />
       </div>
 
       {/* Resizer */}
