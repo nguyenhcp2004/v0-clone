@@ -267,11 +267,13 @@ export default function Home() {
               </svg>
             </button>
           )}
-          <ChatForm
-            input={input}
-            handleInputChange={handleInputChange}
-            handleSubmit={handleSubmit}
-          />
+          {hasUserMessage && (
+            <ChatForm
+              input={input}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleSubmit}
+            />
+          )}
         </div>
       </div>
 
